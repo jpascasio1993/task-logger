@@ -67,4 +67,10 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with $TaskDaoMixin {
         .map((dtos) =>
             dtos.map((e) => Task.fromJson(e.toJson())).toList(growable: false));
   }
+
+  Future<List<Task>> getTasks(List<String> ids) async {
+    final res =
+        await (select(taskTable)..where((tbl) => tbl.id.isIn(ids))).get();
+    return res.map((e) => Task.fromJson(e.toJson())).toList(growable: false);
+  }
 }

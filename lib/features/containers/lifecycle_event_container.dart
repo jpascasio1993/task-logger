@@ -75,6 +75,6 @@ class _LifecycleEventContainerView extends WidgetView<LifecycleEventContainer,
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.expand(child: C);
+    return SizedBox.expand(child: widget.child);
   }
 }

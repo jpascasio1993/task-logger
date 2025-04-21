@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:task_logger/core/enums/internet_connection_status.dart';
 import 'package:task_logger/core/enums/response_type.dart';
 import 'package:task_logger/core/extensions/localization_extension.dart';
 import 'package:task_logger/core/extensions/theme_extension.dart';
@@ -7,9 +8,13 @@ import 'package:task_logger/core/utils/dio/exceptions/base_exception.dart';
 import 'package:task_logger/core/widgets/base_widgets/base_state.dart';
 import 'package:task_logger/core/widgets/base_widgets/widget_view.dart';
 import 'package:task_logger/domain/models/task/task.dart';
+import 'package:task_logger/features/bloc/app_state_bloc/app_state.dart';
+import 'package:task_logger/features/bloc/app_state_bloc/app_state_bloc.dart';
 import 'package:task_logger/features/bloc/dashboard_task_bloc/dashboard_task_bloc.dart';
 import 'package:task_logger/features/bloc/dashboard_task_bloc/dashboard_task_event.dart';
 import 'package:task_logger/features/bloc/dashboard_task_bloc/dashboard_task_state.dart';
+import 'package:task_logger/features/bloc/new_task_bloc/new_task_bloc.dart';
+import 'package:task_logger/features/bloc/new_task_bloc/new_task_state.dart';
 import 'package:task_logger/features/mixins/bloc/create_task_bloc_mixin.dart';
 import 'package:task_logger/router/new_task_route/new_task_route.dart';
 import 'package:task_logger/router/update_task_route/update_task_route.dart';
@@ -55,6 +60,25 @@ class _DashboardController extends BaseState<Dashboard>
             );
 
             if (state.deleteTaskResult!.type == ResponseType.error) return;
+            init();
+          },
+        ),
+        BlocListener<NewTaskBloc, NewTaskState>(
+          listenWhen: (previous, current) =>
+              previous.createTaskResult != current.createTaskResult &&
+              current.createTaskResult != null &&
+              current.exception != null,
+          listener: (context, state) {
+            init();
+          },
+        ),
+        BlocListener<AppStateBloc, AppState>(
+          listenWhen: (previous, current) =>
+              previous.internetConnectionStatus !=
+                  current.internetConnectionStatus &&
+              current.internetConnectionStatus ==
+                  InternetConnectionStatus.connected,
+          listener: (context, state) {
             init();
           },
         ),

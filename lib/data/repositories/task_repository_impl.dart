@@ -1,6 +1,8 @@
 // ignore_for_file: inference_failure_on_instance_creation, document_ignores
 
-import 'package:dio/dio.dart';
+import 'package:dio/dio.dart' hide ResponseType;
+import 'package:objectid/objectid.dart';
+import 'package:task_logger/core/enums/response_type.dart';
 import 'package:task_logger/core/utils/dio/exceptions/base_exception.dart';
 import 'package:task_logger/data/database/dao/task_dao/task_dao.dart';
 import 'package:task_logger/data/dto/task_dto/task_dto.dart';
@@ -62,20 +64,41 @@ class TaskRepositoryImpl implements TaskRepository {
   @override
   Future<Result<BaseResponse<List<Task>>>> createTasks(
       CreateTasksParams params) async {
+    final task = [
+      TaskDTO(
+        title: params.title,
+        description: params.description,
+        dateTime: params.dateTime,
+        completed: params.completed,
+      ),
+    ];
     try {
       final res = await _taskService.createTask(CreateTasksRequest(
-        [
-          TaskDTO(
-            title: params.title,
-            description: params.description,
-            dateTime: params.dateTime,
-            completed: params.completed,
-          ),
-        ],
+        task,
       ));
       return Result.success(res);
     } on DioException catch (e) {
-      return Result.error(e.message, exception: e, stackTrace: e.stackTrace);
+      final id = ObjectId().hexString;
+      final copyTask =
+          task.map((e) => e.copyWith(id: id)).toList(growable: false);
+      final added = await _taskDao.insertTasks(copyTask);
+
+      if (!added) {
+        return Result.error(e.message, exception: e, stackTrace: e.stackTrace);
+      }
+
+      final tasks = await _taskDao.getTasks([id]);
+
+      if (tasks.isEmpty) {
+        return Result.error(e.message, exception: e, stackTrace: e.stackTrace);
+      }
+
+      return Result.success(BaseResponse(
+        data: tasks,
+        type: ResponseType.success,
+        title: 'Task created',
+        message: 'Task created successfully',
+      ));
     } on Exception catch (e, s) {
       return Result.error(null, exception: e, stackTrace: s);
     }
