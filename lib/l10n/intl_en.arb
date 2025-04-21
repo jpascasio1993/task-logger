@@ -1,0 +1,61 @@
+{
+    "appName": "Task Logger",
+    "@appName": {
+     "type": "text",
+     "placeholders": {}
+    },
+    "retry": "Retry",
+    "@retry": {
+        "type": "text",
+        "placeholders": {}
+    },
+    "isCompleted": "{isCompleted,select, true{Completed}false{Not yet completed}}",
+    "@isCompleted": {
+        "type": "text",
+        "placeholders": {
+            "isCompleted": {
+                "type": "bool"
+            }
+        }
+    },
+    "deletingTask": "Deleting task...",
+    "@deletingTask": {
+     "type": "text",
+     "placeholders": {}
+    },
+    "createNewTask": "Create new task",
+    "@createNewTask": {
+     "type": "text",
+     "placeholders": {}
+    },
+    "title": "Title",
+    "@title": {
+     "type": "text",
+     "placeholders": {}
+    },
+    "description": "Description",
+    "@description": {
+     "type": "text",
+     "placeholders": {}
+    },
+    "completed": "Completed",
+    "@completed": {
+     "type": "text",
+     "placeholders": {}
+    },
+    "createTask": "Create task",
+    "@createTask": {
+     "type": "text",
+     "placeholders": {}
+    },
+    "creatingTask": "Creating task...",
+    "@creatingTask": {
+     "type": "text",
+     "placeholders": {}
+    },
+    "updateTask": "Update task",
+    "@updateTask": {
+     "type": "text",
+     "placeholders": {}
+    }
+}

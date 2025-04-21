@@ -1,0 +1,8 @@
+-dontwarn java.lang.invoke.StringConcatFactory
+-dontwarn java.beans.ConstructorProperties
+-dontwarn java.beans.Transient
+-dontwarn org.slf4j.impl.StaticLoggerBinder
+-dontwarn org.slf4j.impl.StaticMDCBinder
+-dontwarn org.xmlpull.v1.XmlPullParser
+-dontwarn org.xmlpull.v1.XmlSerializer
+-keep class org.xmlpull.v1.* {*;}

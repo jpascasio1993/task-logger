@@ -1,0 +1,1 @@
+enum InternetConnectionStatus { connected, disconnected }

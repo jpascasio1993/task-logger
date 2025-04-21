@@ -1,0 +1,21 @@
+{
+    "private": true,
+    "scripts": {
+      "start": "fvm flutter run -t lib/main.dart",
+      "build-runner:clean": "fvm flutter packages pub run build_runner clean",
+      "build-runner:watch": "fvm flutter packages pub run build_runner watch",
+      "build-runner:build": "fvm flutter packages pub run build_runner build",
+      "build-runner:build:verbose": "fvm flutter packages pub run build_runner build --verbose",
+      "build-runner:watch:conflict": "fvm flutter packages pub run build_runner watch --delete-conflicting-outputs",
+      "build-runner:build:conflict": "fvm flutter packages pub run build_runner build --delete-conflicting-outputs",
+      "build-runner:build:conflict:verbose": "fvm flutter packages pub run build_runner build --delete-conflicting-outputs --verbose",
+      "build-localization": "yarn build-intl-arb && yarn build-intl",
+      "run-analysis-unused-l10n": "fvm flutter packages pub run dart_code_linter:metrics check-unused-l10n -p l10n lib ",
+      "run-analysis-metric": "fvm flutter packages pub run dart_code_linter:metrics analyze lib --fatal-style --fatal-warnings --fatal-performance",
+      "run-analysis-unused-files": "fvm flutter packages pub run dart_code_linter:metrics check-unused-files lib --no-fatal-unused",
+      "run-analysis-unused-code": "fvm flutter packages pub run dart_code_linter:metrics check-unused-code lib --no-fatal-unused",
+      "format-files": "fvm dart format lib/ --fix",
+      "run-ignore-coverage": "$PWD/ignore_coverage.sh",
+      "test:coverage": "fvm flutter test --coverage && fvm flutter pub run test_cov_console"
+    }
+  }
