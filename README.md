@@ -1,14 +1,14 @@
 # Task Logger
 
-Task logging app that can create, update, delete, view task while offline and sync with the Task Logger API once the device is online
+Task logging app that can create, update, delete, view task while offline and sync locally mutated data online through the Task Logger API endpoint once the device is online
 
 ## Prerequisites
 
 **Flutter**
-- 3.29.0 on stable channel
+- 3.29.3 on stable channel
 
 **Dart**
-- 3.7.0
+- 3.7.2
 
 **Secrets and Keystore**
 
