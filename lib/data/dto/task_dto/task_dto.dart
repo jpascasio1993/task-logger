@@ -10,8 +10,8 @@ abstract class TaskDTO with _$TaskDTO {
   @JsonSerializable(explicitToJson: true)
   factory TaskDTO(
       {@JsonKey(name: '_id') String? id,
-      String? title,
-      String? description,
+      required String title,
+      required String description,
       bool? completed,
       @DateTimeConverter() DateTime? dateTime,
       @DateTimeConverter() DateTime? createdAt,

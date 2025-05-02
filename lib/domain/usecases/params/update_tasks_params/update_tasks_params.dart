@@ -6,8 +6,8 @@ part 'update_tasks_params.freezed.dart';
 abstract class UpdateTasksParams with _$UpdateTasksParams {
   const factory UpdateTasksParams(
       {required String id,
-      String? description,
-      String? title,
+      required String description,
+      required String title,
       DateTime? dateTime,
       bool? completed}) = _UpdateTasksParams;
 }

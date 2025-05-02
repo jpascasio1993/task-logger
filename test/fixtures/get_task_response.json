@@ -1,0 +1,17 @@
+{
+    "data": [
+        {
+            "_id": "68138e86a89ff83fad433a6e",
+            "title": "Task 1 offline update6",
+            "description": "Task 1 offline update6",
+            "dateTime": "2025-04-30T18:54:27.403Z",
+            "completed": false,
+            "createdAt": "2025-05-01T15:08:54.513Z",
+            "updatedAt": "2025-05-02T05:00:11.636Z",
+            "__v": 0
+        }
+    ],
+    "type": "success",
+    "title": "Get Tasks",
+    "message": "Tasks fetched successfully"
+}

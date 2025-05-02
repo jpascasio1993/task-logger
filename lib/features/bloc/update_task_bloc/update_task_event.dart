@@ -6,8 +6,8 @@ part 'update_task_event.freezed.dart';
 abstract class UpdateTaskEvent with _$UpdateTaskEvent {
   const factory UpdateTaskEvent({
     required String id,
-    String? description,
-    String? title,
+    required String description,
+    required String title,
     DateTime? dateTime,
     bool? completed,
   }) = _UpdateTaskEvent;

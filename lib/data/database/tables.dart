@@ -7,9 +7,9 @@ class TaskTable extends Table {
   TextColumn get id =>
       text().named('_id').clientDefault(() => ObjectId().hexString)();
 
-  TextColumn get title => text().nullable()();
+  TextColumn get title => text()();
 
-  TextColumn get description => text().nullable()();
+  TextColumn get description => text()();
 
   BoolColumn get completed => boolean().withDefault(const Constant(false))();
 

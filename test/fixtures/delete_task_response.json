@@ -1,0 +1,9 @@
+{
+    "data": {
+        "acknowledged": true,
+        "deletedCount": 1
+    },
+    "type": "success",
+    "title": "Delete Tasks",
+    "message": "Tasks deleted successfully"
+}
