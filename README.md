@@ -1,6 +1,6 @@
-# task_logger
+# Task Logger
 
-Task Logging System
+Task logging app that can create, update, delete, view task while offline and sync with the Task Logger API once the device is online
 
 ## Prerequisites
 
