@@ -10,6 +10,11 @@ Task logging app that can create, update, delete, view task while offline and sy
 **Dart**
 - 3.7.2
 
+**Pre-Built APK**
+
+I have gone ahead building the apk with production secrets. The API url should point to the Task Logger API that I uploaded and hosted in AWS.
+
+
 **Secrets and Keystore**
 
 This project includes `*.secrets`, `*.jks`, `key.properties` in the repository since this is just an exercise.
@@ -95,3 +100,13 @@ to
 ```sh
  fvm dart run lint_staged
 ```
+
+
+https://github.com/user-attachments/assets/02a465ab-ac50-4376-b962-1083ea557e4e
+
+
+
+https://github.com/user-attachments/assets/99c4ae77-013f-4e6e-972d-4123accd2032
+
+
+
