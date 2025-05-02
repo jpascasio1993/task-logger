@@ -12,8 +12,7 @@ abstract class UpdateTasksRequest extends BaseRequest
   UpdateTasksRequest._();
 
   @JsonSerializable(explicitToJson: true)
-  factory UpdateTasksRequest(
-    List<TaskDTO> list, {
+  factory UpdateTasksRequest({
     @Default([]) List<TaskDTO> tasks,
   }) = _UpdateTasksRequest;
 

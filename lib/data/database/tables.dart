@@ -24,7 +24,12 @@ class TaskTable extends Table {
 
   BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
 
-  BoolColumn get isUpdated => boolean().withDefault(const Constant(false))();
+  @override
+  Set<Column<Object>>? get primaryKey => {id};
+}
+
+class UpdatedTaskTable extends Table {
+  TextColumn get id => text().named('_id')();
 
   @override
   Set<Column<Object>>? get primaryKey => {id};

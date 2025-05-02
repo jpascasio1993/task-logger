@@ -21,4 +21,5 @@ abstract class TaskRepository {
   Future<Result<bool>> syncLocalTasks(List<Task> tasks);
   Future<Result<BaseResponse<List<Task>>>> syncLocallyCreatedTasks();
   Future<Result<BaseResponse<DeleteTaskResult>>> syncLocallyDeletedTasks();
+  Future<Result<BaseResponse<UpdateTaskResult>>> syncLocallyUpdatedTasks();
 }

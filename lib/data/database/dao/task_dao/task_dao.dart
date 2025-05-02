@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:drift/drift.dart';
 import 'package:task_logger/data/database/dao/task_dao/task_dao.drift.dart';
 import 'package:task_logger/data/database/database.dart';
@@ -6,7 +8,7 @@ import 'package:task_logger/data/database/tables.drift.dart';
 import 'package:task_logger/data/dto/task_dto/task_dto.dart';
 import 'package:task_logger/domain/models/task/task.dart';
 
-@DriftAccessor(tables: [TaskTable])
+@DriftAccessor(tables: [TaskTable, UpdatedTaskTable])
 class TaskDao extends DatabaseAccessor<AppDatabase> with $TaskDaoMixin {
   TaskDao(super.attachedDatabase);
 
@@ -83,13 +85,24 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with $TaskDaoMixin {
         .toList();
     return transaction(() async {
       await batch((batch) {
-        batch.replaceAll(
-          taskTable,
-          mappedTasks,
-        );
+        batch
+          ..insertAll(
+            updatedTaskTable,
+            mappedTasks
+                .map((e) => UpdatedTaskTableCompanion.insert(id: e.id.value))
+                .toList(),
+            mode: InsertMode.insertOrReplace,
+          )
+          ..replaceAll(
+            taskTable,
+            mappedTasks,
+          );
         // onConflict: DoUpdate<TaskTable, TaskDTO>((t) => t));
       });
-    }).then((_) => true).catchError((_) => false);
+    }).then((_) => true).catchError((e) {
+      log(e.toString());
+      return false;
+    });
   }
 
   Stream<List<Task>> watchTasks() {
@@ -126,7 +139,7 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with $TaskDaoMixin {
 
   Future<List<TaskDTO>> getLocallyCreatedTasks() async {
     final res = await customSelect(
-        'SELECT * from task_table where is_deleted = 0 and is_uploaded = 0',
+        'SELECT * from task_table where is_deleted = 0 and is_uploaded = 0 and _id not in (select _id from updated_task_table)',
         readsFrom: {taskTable}).map((e) {
       e.data['completed'] = e.data['completed'] == 1;
       e.data['dateTime'] = e.data['date_time'];
@@ -154,5 +167,27 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with $TaskDaoMixin {
     }).get();
 
     return res;
+  }
+
+  Future<List<TaskDTO>> getLocallyUpdatedTasks() async {
+    final res = await customSelect(
+        'SELECT * from task_table as t join updated_task_table as ut on t._id = ut._id where t.is_uploaded = 0 and t.is_deleted = 0',
+        readsFrom: {updatedTaskTable}).map((e) {
+      e.data['completed'] = e.data['completed'] == 1;
+      e.data['dateTime'] = e.data['date_time'];
+      e.data['createdAt'] = e.data['created_at'];
+      e.data['updatedAt'] = e.data['updated_at'];
+      e.data['isDeleted'] = e.data['is_deleted'] == 1;
+      e.data['isUploaded'] = e.data['is_uploaded'] == 1;
+      return TaskDTO.fromJson(e.data);
+    }).get();
+
+    return res;
+  }
+
+  Future<bool> deleteUpdatedTasks(List<String> ids) async {
+    final res =
+        await (delete(updatedTaskTable)..where((tbl) => tbl.id.isIn(ids))).go();
+    return res > 0;
   }
 }

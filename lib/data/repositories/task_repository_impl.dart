@@ -136,8 +136,8 @@ class TaskRepositoryImpl implements TaskRepository {
                 updatedAt: e.updatedAt,
               ))
           .toList(growable: false);
-      final res =
-          await _taskService.updateTasks(UpdateTasksRequest(updatedTask));
+      final res = await _taskService
+          .updateTasks(UpdateTasksRequest(tasks: updatedTask));
       return Result.success(res);
     } on Exception catch (e, s) {
       final task = [
@@ -153,11 +153,7 @@ class TaskRepositoryImpl implements TaskRepository {
       final errorMessage = e is DioException ? e.message : e.toString();
       final stackTrace = e is DioException ? e.stackTrace : s;
 
-      final sucessfullyUpdated = await _taskDao.updateTasks(task
-          .map((e) => e.copyWith(
-                isUploaded: false,
-              ))
-          .toList(growable: false));
+      final sucessfullyUpdated = await _taskDao.updateTasks(task);
       if (!sucessfullyUpdated) {
         return Result.error(errorMessage, exception: e, stackTrace: stackTrace);
       }
@@ -239,6 +235,35 @@ class TaskRepositoryImpl implements TaskRepository {
         await _taskDao.updateTasks(tasks
             .map((e) => e.copyWith(isUploaded: true))
             .toList(growable: false));
+      }
+      return Result.success(res);
+    } on DioException catch (e) {
+      return Result.error(e.message, exception: e, stackTrace: e.stackTrace);
+    } on Exception catch (e, s) {
+      return Result.error(null, exception: e, stackTrace: s);
+    }
+  }
+
+  @override
+  Future<Result<BaseResponse<UpdateTaskResult>>>
+      syncLocallyUpdatedTasks() async {
+    final tasks = await _taskDao.getLocallyUpdatedTasks();
+    if (tasks.isEmpty) {
+      return Result.success(BaseResponse(
+        data: UpdateTaskResult(),
+        type: ResponseType.success,
+      ));
+    }
+    try {
+      final res = await _taskService.updateTasks(UpdateTasksRequest(
+        tasks: tasks,
+      ));
+      if (res.type == ResponseType.success) {
+        await _taskDao.updateTasks(tasks
+            .map((e) => e.copyWith(isUploaded: true))
+            .toList(growable: false));
+        await _taskDao.deleteUpdatedTasks(
+            tasks.map((e) => e.id!).toList(growable: false));
       }
       return Result.success(res);
     } on DioException catch (e) {

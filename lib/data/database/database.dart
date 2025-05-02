@@ -6,7 +6,7 @@ import 'package:task_logger/data/database/tables.dart';
 
 import 'database.drift.dart';
 
-@DriftDatabase(tables: [TaskTable])
+@DriftDatabase(tables: [TaskTable, UpdatedTaskTable])
 class AppDatabase extends $AppDatabase {
   AppDatabase() : super(_openConnection());
 
