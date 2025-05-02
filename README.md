@@ -4,6 +4,11 @@ Task logging app that can create, update, delete, view task while offline and sy
 
 ## Prerequisites
 
+**IDE**
+ - Android Studio Meerkat (2024.3.1) or latest
+ - VSCode
+ - Cursor
+
 **Flutter**
 - 3.29.3 on stable channel
 
