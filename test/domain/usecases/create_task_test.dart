@@ -11,7 +11,7 @@ import 'package:task_logger/domain/repositories/task_repository.dart';
 import 'package:task_logger/domain/usecases/params/create_tasks_params/create_tasks_params.dart';
 import 'package:task_logger/domain/usecases/task/create_tasks.dart';
 
-import '../fixtures/fixture_reader.dart';
+import '../../fixtures/fixture_reader.dart';
 import 'create_task_test.mocks.dart';
 
 @GenerateMocks([TaskRepository])
@@ -28,7 +28,7 @@ void main() {
         Result.success(baseResponse));
   });
 
-  group('CreateTasks', () {
+  group('CreateTasks usecase', () {
     test('should create tasks successfully', () async {
       when(taskRepository.createTasks(any))
           .thenAnswer((_) async => Result.success(baseResponse));
