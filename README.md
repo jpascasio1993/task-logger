@@ -95,3 +95,13 @@ to
 ```sh
  fvm dart run lint_staged
 ```
+
+
+https://github.com/user-attachments/assets/02a465ab-ac50-4376-b962-1083ea557e4e
+
+
+
+https://github.com/user-attachments/assets/99c4ae77-013f-4e6e-972d-4123accd2032
+
+
+
