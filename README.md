@@ -48,6 +48,37 @@ npm run build-runner:build:conflict
 npm run build-runner:watch:conflict
 ```
 
+**Running the App**
+
+After running the above command, you can now run the app by running the following script.
+
+```sh
+# Production
+fvm flutter run --dart-define-from-file=.secrets/prod.secrets
+
+#local
+fvm flutter run --dart-define-from-file=.secrets/local.secrets
+```
+
+
+**Test and Test Coverage**
+
+The project uses mockito for testing and test_cov_console for test coverage.
+To execute flutter test and test coverage, just run the following command.
+Note: omit `fvm` from the command if you do not use flutter version manager
+
+```sh
+  fvm flutter test --coverage && fvm flutter pub run test_cov_console
+```
+
+if you have npm or yarn installed,
+
+```sh
+   npm run test:coverage
+   
+   # via yarn
+   yarn test:coverage
+```
 
 **Git Hooks**
 
