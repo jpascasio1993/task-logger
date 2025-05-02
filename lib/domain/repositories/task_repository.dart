@@ -1,4 +1,3 @@
-import 'package:task_logger/data/dto/task_dto/task_dto.dart';
 import 'package:task_logger/data/response/base_response/base_response.dart';
 import 'package:task_logger/domain/models/delete_task_result/delete_task_result.dart';
 import 'package:task_logger/domain/models/result/result.dart';
@@ -19,5 +18,7 @@ abstract class TaskRepository {
       UpdateTasksParams params);
 
   Stream<List<Task>> watchTasks();
-  Future<Result<bool>> syncLocalTasks(List<TaskDTO> tasks);
+  Future<Result<bool>> syncLocalTasks(List<Task> tasks);
+  Future<Result<BaseResponse<List<Task>>>> syncLocallyCreatedTasks();
+  Future<Result<BaseResponse<DeleteTaskResult>>> syncLocallyDeletedTasks();
 }

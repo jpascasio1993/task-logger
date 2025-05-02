@@ -14,11 +14,17 @@ class TaskTable extends Table {
   BoolColumn get completed => boolean().withDefault(const Constant(false))();
 
   DateTimeColumn get date =>
-      dateTime().named('date_time').withDefault(currentDateAndTime)();
+      dateTime().withDefault(currentDateAndTime).named('date_time')();
 
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  BoolColumn get isUploaded => boolean().withDefault(const Constant(false))();
+
+  BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
+
+  BoolColumn get isUpdated => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column<Object>>? get primaryKey => {id};

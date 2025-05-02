@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:task_logger/core/enums/internet_connection_status.dart';
-import 'package:task_logger/core/enums/response_type.dart';
 import 'package:task_logger/core/extensions/localization_extension.dart';
 import 'package:task_logger/core/extensions/theme_extension.dart';
-import 'package:task_logger/core/utils/dio/exceptions/base_exception.dart';
 import 'package:task_logger/core/widgets/base_widgets/base_state.dart';
 import 'package:task_logger/core/widgets/base_widgets/widget_view.dart';
 import 'package:task_logger/domain/models/task/task.dart';
@@ -13,8 +11,6 @@ import 'package:task_logger/features/bloc/app_state_bloc/app_state_bloc.dart';
 import 'package:task_logger/features/bloc/dashboard_task_bloc/dashboard_task_bloc.dart';
 import 'package:task_logger/features/bloc/dashboard_task_bloc/dashboard_task_event.dart';
 import 'package:task_logger/features/bloc/dashboard_task_bloc/dashboard_task_state.dart';
-import 'package:task_logger/features/bloc/new_task_bloc/new_task_bloc.dart';
-import 'package:task_logger/features/bloc/new_task_bloc/new_task_state.dart';
 import 'package:task_logger/features/mixins/bloc/create_task_bloc_mixin.dart';
 import 'package:task_logger/router/new_task_route/new_task_route.dart';
 import 'package:task_logger/router/update_task_route/update_task_route.dart';
@@ -58,18 +54,6 @@ class _DashboardController extends BaseState<Dashboard>
                 content: Text(state.deleteTaskResult!.message),
               ),
             );
-
-            if (state.deleteTaskResult!.type == ResponseType.error) return;
-            init();
-          },
-        ),
-        BlocListener<NewTaskBloc, NewTaskState>(
-          listenWhen: (previous, current) =>
-              previous.createTaskResult != current.createTaskResult &&
-              current.createTaskResult != null &&
-              current.exception != null,
-          listener: (context, state) {
-            init();
           },
         ),
         BlocListener<AppStateBloc, AppState>(
@@ -80,6 +64,18 @@ class _DashboardController extends BaseState<Dashboard>
                   InternetConnectionStatus.connected,
           listener: (context, state) {
             init();
+            syncRemoteTasks();
+          },
+        ),
+        BlocListener<AppStateBloc, AppState>(
+          listenWhen: (previous, current) =>
+              previous.appLifecycleState != current.appLifecycleState &&
+              current.appLifecycleState == AppLifecycleState.resumed &&
+              current.internetConnectionStatus ==
+                  InternetConnectionStatus.connected,
+          listener: (context, state) {
+            init();
+            syncRemoteTasks();
           },
         ),
       ], child: _DashboardView(this));
@@ -94,6 +90,17 @@ class _DashboardController extends BaseState<Dashboard>
 
   void delete(List<String> ids) {
     super.taskBloc.add(DashboardTaskEvent.delete(ids));
+  }
+
+  void syncRemoteTasks() {
+    super.taskBloc.add(const DashboardTaskEvent.syncRemoteTasks());
+  }
+
+  Future<void> update(Task task) async {
+    final res =
+        (await UpdateTaskRoute(task.id, task).push<bool?>(context)) ?? false;
+    if (!res) return;
+    init();
   }
 }
 
@@ -116,60 +123,80 @@ class _DashboardView extends WidgetView<Dashboard, _DashboardController> {
                 },
                 icon: const Icon(Icons.add))
           ],
+          bottom: PreferredSize(
+            preferredSize: const Size(double.infinity, 10),
+            child: Builder(
+              builder: (context) {
+                final connected = context.select<AppStateBloc, bool>((bloc) =>
+                    bloc.state.internetConnectionStatus ==
+                    InternetConnectionStatus.connected);
+                return AnimatedOpacity(
+                  opacity: connected ? 0 : 1,
+                  duration: kThemeAnimationDuration,
+                  child: ColoredBox(
+                      color: Colors.red,
+                      child: SizedBox(
+                          width: double.infinity,
+                          child: Text(
+                            context.localization.noInternetConnection,
+                            style: context.materialTheme.textTheme.labelSmall
+                                ?.copyWith(color: Colors.white),
+                            textAlign: TextAlign.center,
+                          ))),
+                );
+              },
+            ),
+          ),
         ),
         body: SafeArea(child: Builder(
           builder: (context) {
             final isLoading = context.select<DashboardTaskBloc, bool>(
                 (bloc) => bloc.state.getTasksLoading);
-            final error = context.select<DashboardTaskBloc, BaseException?>(
-                (bloc) => bloc.state.getTasksException);
+            // final error = context.select<DashboardTaskBloc, BaseException?>(
+            //     (bloc) => bloc.state.getTasksException);
             final tasks = context.select<DashboardTaskBloc, List<Task>>(
                 (bloc) => bloc.state.tasks);
 
-            if (isLoading) {
+            if (isLoading && tasks.isEmpty) {
               return const Center(
                 child: CircularProgressIndicator(),
               );
             }
 
-            if (error != null) {
+            if (tasks.isEmpty) {
               return Center(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(error.message),
-                    const SizedBox(
-                      height: 8,
-                    ),
-                    ElevatedButton(
-                        onPressed: state.init,
-                        child: Text(context.localization.retry)),
-                  ],
-                ),
-              );
+                  child: Text(
+                context.localization.nothingToShow,
+                style: context.materialTheme.textTheme.labelLarge,
+              ));
             }
 
             return ListView.separated(
                 itemBuilder: (context, index) {
                   return ListTile(
                     onTap: () async {
-                      final res =
-                          (await UpdateTaskRoute(tasks[index].id, tasks[index])
-                                  .push<bool?>(context)) ??
-                              false;
-                      if (!res) return;
-                      state.init();
+                      await state.update(tasks[index]);
                     },
                     title: Text(tasks[index].title,
                         style: context.materialTheme.textTheme.labelLarge
                             ?.copyWith(
                                 color:
                                     context.materialTheme.colorScheme.primary)),
-                    trailing: IconButton(
-                        onPressed: () {
-                          state.delete([tasks[index].id]);
-                        },
-                        icon: const Icon(Icons.delete)),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                            onPressed: () async {
+                              await state.update(tasks[index]);
+                            },
+                            icon: const Icon(Icons.edit)),
+                        IconButton(
+                            onPressed: () {
+                              state.delete([tasks[index].id]);
+                            },
+                            icon: const Icon(Icons.delete))
+                      ],
+                    ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -180,7 +207,7 @@ class _DashboardView extends WidgetView<Dashboard, _DashboardController> {
                                         .materialTheme.colorScheme.onSurface)),
                         Text(
                           context.localization
-                              .isCompleted(tasks[index].completed),
+                              .isCompleted(tasks[index].completed.toString()),
                           style: context.materialTheme.textTheme.labelMedium
                               ?.copyWith(
                                   color: context

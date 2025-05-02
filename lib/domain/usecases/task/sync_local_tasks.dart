@@ -1,4 +1,3 @@
-import 'package:task_logger/data/dto/task_dto/task_dto.dart';
 import 'package:task_logger/domain/models/result/result.dart';
 import 'package:task_logger/domain/models/task/task.dart';
 import 'package:task_logger/domain/repositories/task_repository.dart';
@@ -21,17 +20,7 @@ class SyncLocalTasks implements UseCase<bool, GetTasksParams> {
           stackTrace: resultTasksFromRemote.stackTrace);
     }
     final res = await _taskRepository.syncLocalTasks(
-        (resultTasksFromRemote as ResultSuccess<List<Task>>)
-            .data
-            .map((e) => TaskDTO(
-                completed: e.completed,
-                id: e.id,
-                updatedAt: e.updatedAt,
-                createdAt: e.createdAt,
-                dateTime: e.dateTime,
-                description: e.description,
-                title: e.title))
-            .toList(growable: false));
+        (resultTasksFromRemote as ResultSuccess<List<Task>>).data);
 
     return res;
   }

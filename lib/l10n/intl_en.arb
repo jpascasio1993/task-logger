@@ -9,12 +9,12 @@
         "type": "text",
         "placeholders": {}
     },
-    "isCompleted": "{isCompleted,select, true{Completed}false{Not yet completed}}",
+    "isCompleted": "{cmplt,select, true{Completed}false{Not yet completed}other{Not yet completed}}",
     "@isCompleted": {
         "type": "text",
         "placeholders": {
-            "isCompleted": {
-                "type": "bool"
+            "cmplt": {
+                "type": "String"
             }
         }
     },
@@ -55,6 +55,21 @@
     },
     "updateTask": "Update task",
     "@updateTask": {
+     "type": "text",
+     "placeholders": {}
+    },
+    "errorOccurred": "An error occurred",
+    "@errorOccurred": {
+     "type": "text",
+     "placeholders": {}
+    },
+    "noInternetConnection": "No internet connection",
+    "@noInternetConnection": {
+     "type": "text",
+     "placeholders": {}
+    },
+    "nothingToShow": "Nothing to Show",
+    "@nothingToShow": {
      "type": "text",
      "placeholders": {}
     }

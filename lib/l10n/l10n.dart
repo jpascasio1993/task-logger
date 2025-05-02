@@ -64,14 +64,18 @@ class AppLocalization {
     return Intl.message('Retry', name: 'retry', desc: '', args: []);
   }
 
-  /// `{isCompleted,select, true{Completed}false{Not yet completed}}`
-  String isCompleted(bool isCompleted) {
+  /// `{cmplt,select, true{Completed}false{Not yet completed}other{Not yet completed}}`
+  String isCompleted(String cmplt) {
     return Intl.select(
-      isCompleted,
-      {'true': 'Completed', 'false': 'Not yet completed'},
+      cmplt,
+      {
+        'true': 'Completed',
+        'false': 'Not yet completed',
+        'other': 'Not yet completed',
+      },
       name: 'isCompleted',
       desc: '',
-      args: [isCompleted],
+      args: [cmplt],
     );
   }
 
@@ -128,6 +132,36 @@ class AppLocalization {
   /// `Update task`
   String get updateTask {
     return Intl.message('Update task', name: 'updateTask', desc: '', args: []);
+  }
+
+  /// `An error occurred`
+  String get errorOccurred {
+    return Intl.message(
+      'An error occurred',
+      name: 'errorOccurred',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No internet connection`
+  String get noInternetConnection {
+    return Intl.message(
+      'No internet connection',
+      name: 'noInternetConnection',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Nothing to Show`
+  String get nothingToShow {
+    return Intl.message(
+      'Nothing to Show',
+      name: 'nothingToShow',
+      desc: '',
+      args: [],
+    );
   }
 }
 

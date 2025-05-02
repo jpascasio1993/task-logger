@@ -17,5 +17,7 @@ abstract class DashboardTaskState with _$DashboardTaskState {
     BaseException? deleteTaskException,
     @Default(false) bool watchTasksLoading,
     BaseException? watchTasksException,
+    @Default(false) bool syncRemoteTasksLoading,
+    BaseException? syncRemoteTasksException,
   }) = _DashboardTaskState;
 }

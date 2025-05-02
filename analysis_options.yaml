@@ -9,7 +9,7 @@
 # packages, and plugins designed to encourage good coding practices.
 include: package:flutter_lints_plus/flutter.yaml
 
-nalyzer:
+analyzer:
   language:
     strict-raw-types: true
   exclude:
@@ -17,6 +17,7 @@ nalyzer:
     - lib/**/*.freezed.dart
     - lib/di/injection.config.dart
     - lib/**/*.g.dart
+    - lib/l10n/**/*.dart
   # - "TODO/"
   #  strong-mode:
   #    implicit-casts: false

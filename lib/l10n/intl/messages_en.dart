@@ -20,9 +20,10 @@ typedef String MessageIfAbsent(String messageStr, List<dynamic> args);
 class MessageLookup extends MessageLookupByLibrary {
   String get localeName => 'en';
 
-  static String m0(isCompleted) => "${Intl.select(isCompleted, {
+  static String m0(cmplt) => "${Intl.select(cmplt, {
             'true': 'Completed',
-            'false': 'Not yet completed'
+            'false': 'Not yet completed',
+            'other': 'Not yet completed'
           })}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
@@ -37,7 +38,14 @@ class MessageLookup extends MessageLookupByLibrary {
         "deletingTask":
             MessageLookupByLibrary.simpleMessage("Deleting task..."),
         "description": MessageLookupByLibrary.simpleMessage("Description"),
+        "errorOccurred":
+            MessageLookupByLibrary.simpleMessage("An error occurred"),
         "isCompleted": m0,
+        "noInternetConnection": MessageLookupByLibrary.simpleMessage(
+          "No internet connection",
+        ),
+        "nothingToShow":
+            MessageLookupByLibrary.simpleMessage("Nothing to Show"),
         "retry": MessageLookupByLibrary.simpleMessage("Retry"),
         "title": MessageLookupByLibrary.simpleMessage("Title"),
         "updateTask": MessageLookupByLibrary.simpleMessage("Update task"),

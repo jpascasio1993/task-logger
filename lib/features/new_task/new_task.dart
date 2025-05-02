@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:task_logger/core/constants.dart';
 import 'package:task_logger/core/enums/response_type.dart';
 import 'package:task_logger/core/extensions/localization_extension.dart';
 import 'package:task_logger/core/extensions/theme_extension.dart';
@@ -22,16 +23,17 @@ class NewTask extends StatefulWidget {
 }
 
 class _NewTaskController extends BaseState<NewTask>
-    with CreateNewTaskBlocMixin, CreateFormTaskViewStateBlocMixin {
+    with CreateFormTaskViewStateBlocMixin, CreateNewTaskBlocMixin {
   @override
   Widget buildView(BuildContext context) => MultiBlocListener(listeners: [
         BlocListener<NewTaskBloc, NewTaskState>(
           listenWhen: (previous, current) =>
               previous.isLoading != current.isLoading && current.isLoading,
           listener: (context, state) {
-            ScaffoldMessenger.of(context).showSnackBar(
+            ScaffoldMessenger.of(rootNavigatorKey.currentContext!).showSnackBar(
               SnackBar(
                 content: Text(context.localization.creatingTask),
+                duration: const Duration(milliseconds: 500),
               ),
             );
           },
@@ -123,7 +125,7 @@ class _NewTaskView extends WidgetView<NewTask, _NewTaskController> {
                 width: double.infinity,
                 child: ElevatedButton(
                     onPressed: () {
-                      state.newTaskBloc.add(NewTaskEvent(
+                      context.read<NewTaskBloc>().add(NewTaskEvent(
                           title: state.formTaskViewStateBloc.state.title ?? '',
                           description:
                               state.formTaskViewStateBloc.state.description ??

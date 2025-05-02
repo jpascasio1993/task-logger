@@ -15,4 +15,6 @@ sealed class DashboardTaskEvent with _$DashboardTaskEvent {
       DashboardTaskEventWatchTasks;
   const factory DashboardTaskEvent.updateTaskList(List<Task> tasks) =
       DashboardTaskEventWatchTasksUpdateTaskList;
+  const factory DashboardTaskEvent.syncRemoteTasks() =
+      DashboardTaskEventSyncRemoteTasks;
 }

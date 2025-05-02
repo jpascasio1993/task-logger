@@ -23,9 +23,7 @@ mixin CreateTaskBlocMixin<E extends StatefulWidget> on BaseState<E> {
 
   @override
   void dispose() {
-    Future.sync(() async {
-      await taskBloc.close();
-    });
+    unawaited(taskBloc.close());
     super.dispose();
   }
 }

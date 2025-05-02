@@ -53,11 +53,27 @@ class TaskRepositoryImpl implements TaskRepository {
       final res = await _taskService.deleteTasks(DeleteTasksRequest(
         ids: params.ids,
       ));
+
+      if (res.type == ResponseType.success) {
+        await _taskDao.deleteTasks(params.ids);
+      }
+
       return Result.success(res);
-    } on DioException catch (e) {
-      return Result.error(e.message, exception: e, stackTrace: e.stackTrace);
     } on Exception catch (e, s) {
-      return Result.error(null, exception: e, stackTrace: s);
+      final errorMessage = e is DioException ? e.message : e.toString();
+      final stackTrace = e is DioException ? e.stackTrace : s;
+
+      final successfullyDeleted = await _taskDao.softDeleteTasks(params.ids);
+      if (!successfullyDeleted) {
+        return Result.error(errorMessage, exception: e, stackTrace: stackTrace);
+      }
+      return Result.success(BaseResponse(
+        data: DeleteTaskResult(
+            acknowledged: successfullyDeleted, deletedCount: params.ids.length),
+        type: ResponseType.success,
+        title: 'Task deleted',
+        message: 'Task deleted successfully',
+      ));
     }
   }
 
@@ -77,20 +93,22 @@ class TaskRepositoryImpl implements TaskRepository {
         task,
       ));
       return Result.success(res);
-    } on DioException catch (e) {
+    } on Exception catch (e, s) {
+      final errorMessage = e is DioException ? e.message : e.toString();
+      final stackTrace = e is DioException ? e.stackTrace : s;
       final id = ObjectId().hexString;
       final copyTask =
           task.map((e) => e.copyWith(id: id)).toList(growable: false);
       final added = await _taskDao.insertTasks(copyTask);
 
       if (!added) {
-        return Result.error(e.message, exception: e, stackTrace: e.stackTrace);
+        return Result.error(errorMessage, exception: e, stackTrace: stackTrace);
       }
 
       final tasks = await _taskDao.getTasks([id]);
 
       if (tasks.isEmpty) {
-        return Result.error(e.message, exception: e, stackTrace: e.stackTrace);
+        return Result.error(errorMessage, exception: e, stackTrace: stackTrace);
       }
 
       return Result.success(BaseResponse(
@@ -99,8 +117,6 @@ class TaskRepositoryImpl implements TaskRepository {
         title: 'Task created',
         message: 'Task created successfully',
       ));
-    } on Exception catch (e, s) {
-      return Result.error(null, exception: e, stackTrace: s);
     }
   }
 
@@ -108,22 +124,50 @@ class TaskRepositoryImpl implements TaskRepository {
   Future<Result<BaseResponse<UpdateTaskResult>>> updateTasks(
       UpdateTasksParams params) async {
     try {
-      final res = await _taskService.updateTasks(UpdateTasksRequest(
-        [
-          TaskDTO(
-            id: params.id,
-            title: params.title,
-            description: params.description,
-            dateTime: params.dateTime,
-            completed: params.completed,
-          ),
-        ],
-      ));
+      final taskResult = await _taskDao.getTasks([params.id]);
+      final updatedTask = taskResult
+          .map((e) => TaskDTO(
+                id: e.id,
+                title: params.title,
+                description: params.description,
+                dateTime: params.dateTime,
+                completed: params.completed,
+                createdAt: e.createdAt,
+                updatedAt: e.updatedAt,
+              ))
+          .toList(growable: false);
+      final res =
+          await _taskService.updateTasks(UpdateTasksRequest(updatedTask));
       return Result.success(res);
-    } on DioException catch (e) {
-      return Result.error(e.message, exception: e, stackTrace: e.stackTrace);
     } on Exception catch (e, s) {
-      return Result.error(null, exception: e, stackTrace: s);
+      final task = [
+        TaskDTO(
+          id: params.id,
+          title: params.title,
+          description: params.description,
+          dateTime: params.dateTime,
+          completed: params.completed,
+        ),
+      ];
+
+      final errorMessage = e is DioException ? e.message : e.toString();
+      final stackTrace = e is DioException ? e.stackTrace : s;
+
+      final sucessfullyUpdated = await _taskDao.updateTasks(task
+          .map((e) => e.copyWith(
+                isUploaded: false,
+              ))
+          .toList(growable: false));
+      if (!sucessfullyUpdated) {
+        return Result.error(errorMessage, exception: e, stackTrace: stackTrace);
+      }
+
+      return Result.success(BaseResponse(
+        data: UpdateTaskResult(upsertedCount: task.length),
+        type: ResponseType.success,
+        title: 'Task updated',
+        message: 'Task updated successfully',
+      ));
     }
   }
 
@@ -135,8 +179,72 @@ class TaskRepositoryImpl implements TaskRepository {
           stackTrace: stackTrace));
 
   @override
-  Future<Result<bool>> syncLocalTasks(List<TaskDTO> tasks) async {
-    final res = await _taskDao.insertTasks(tasks);
+  Future<Result<bool>> syncLocalTasks(List<Task> tasks) async {
+    final res = await _taskDao.insertTasks(tasks
+        .map((e) => TaskDTO(
+            completed: e.completed,
+            id: e.id,
+            updatedAt: e.updatedAt,
+            createdAt: e.createdAt,
+            dateTime: e.dateTime,
+            description: e.description,
+            title: e.title,
+            isUploaded: true))
+        .toList(growable: false));
     return Result.success(res);
+  }
+
+  @override
+  Future<Result<BaseResponse<List<Task>>>> syncLocallyCreatedTasks() async {
+    final tasks = await _taskDao.getLocallyCreatedTasks();
+    if (tasks.isEmpty) {
+      return const Result.success(BaseResponse(
+        data: [],
+        type: ResponseType.success,
+      ));
+    }
+    try {
+      final res = await _taskService.createTask(CreateTasksRequest(
+        tasks,
+      ));
+      if (res.type == ResponseType.success) {
+        await _taskDao.updateTasks(tasks
+            .map((e) => e.copyWith(isUploaded: true))
+            .toList(growable: false));
+      }
+      return Result.success(res);
+    } on DioException catch (e) {
+      return Result.error(e.message, exception: e, stackTrace: e.stackTrace);
+    } on Exception catch (e, s) {
+      return Result.error(null, exception: e, stackTrace: s);
+    }
+  }
+
+  @override
+  Future<Result<BaseResponse<DeleteTaskResult>>>
+      syncLocallyDeletedTasks() async {
+    final tasks = await _taskDao.getSoftDeletedTasks();
+    if (tasks.isEmpty) {
+      return Result.success(BaseResponse(
+        data: DeleteTaskResult(acknowledged: true, deletedCount: 0),
+        type: ResponseType.success,
+      ));
+    }
+
+    try {
+      final res = await _taskService.deleteTasks(DeleteTasksRequest(
+        ids: tasks.map((e) => e.id!).toList(),
+      ));
+      if (res.type == ResponseType.success) {
+        await _taskDao.updateTasks(tasks
+            .map((e) => e.copyWith(isUploaded: true))
+            .toList(growable: false));
+      }
+      return Result.success(res);
+    } on DioException catch (e) {
+      return Result.error(e.message, exception: e, stackTrace: e.stackTrace);
+    } on Exception catch (e, s) {
+      return Result.error(null, exception: e, stackTrace: s);
+    }
   }
 }

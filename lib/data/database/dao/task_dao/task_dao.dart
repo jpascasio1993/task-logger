@@ -20,6 +20,7 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with $TaskDaoMixin {
               completed: Value.absentIfNull(e.completed),
               createdAt: Value.absentIfNull(e.createdAt),
               updatedAt: Value.absentIfNull(e.updatedAt),
+              isUploaded: Value.absentIfNull(e.isUploaded),
             ))
         .toList();
     return transaction(() async {
@@ -32,7 +33,8 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with $TaskDaoMixin {
           return true;
         }
 
-        final override = element.updatedAt.value.isAfter(exists.updatedAt!);
+        final override = element.updatedAt.value.isAfter(exists.updatedAt!) &&
+            exists.isUploaded == true;
 
         return override;
       }).toList();
@@ -48,29 +50,109 @@ class TaskDao extends DatabaseAccessor<AppDatabase> with $TaskDaoMixin {
     }).then((_) => true).catchError((_) => false);
   }
 
-  Future<int> deleteTasks(List<String> ids) => transaction(() async {
+  Future<bool> deleteTasks(List<String> ids) => transaction(() async {
         final numberOfAffectedRows =
             await (delete(taskTable)..where((tbl) => tbl.id.isIn(ids))).go();
-        return numberOfAffectedRows;
+        return numberOfAffectedRows > 0;
       });
 
+  Future<bool> softDeleteTasks(List<String> ids) async {
+    final tasksInCloudAlready = await (select(taskTable)
+          ..where((tbl) => tbl.id.isIn(ids) & tbl.isUploaded.equals(true)))
+        .get();
+    if (tasksInCloudAlready.isNotEmpty) {
+      return updateTasks(tasksInCloudAlready
+          .map((e) => e.copyWith(isDeleted: true, isUploaded: false))
+          .toList(growable: false));
+    }
+    return deleteTasks(ids);
+  }
+
+  Future<bool> updateTasks(List<TaskDTO> tasks) {
+    final mappedTasks = tasks
+        .map((e) => TaskTableCompanion(
+            id: Value.absentIfNull(e.id),
+            title: Value(e.title),
+            date: Value.absentIfNull(e.dateTime),
+            description: Value.absentIfNull(e.description),
+            completed: Value.absentIfNull(e.completed),
+            createdAt: Value.absentIfNull(e.createdAt),
+            updatedAt: Value.absentIfNull(e.updatedAt),
+            isUploaded: Value.absentIfNull(e.isUploaded),
+            isDeleted: Value.absentIfNull(e.isDeleted)))
+        .toList();
+    return transaction(() async {
+      await batch((batch) {
+        batch.replaceAll(
+          taskTable,
+          mappedTasks,
+        );
+        // onConflict: DoUpdate<TaskTable, TaskDTO>((t) => t));
+      });
+    }).then((_) => true).catchError((_) => false);
+  }
+
   Stream<List<Task>> watchTasks() {
-    return customSelect('SELECT * from task_table', readsFrom: {taskTable})
-        .watch()
-        .map((event) => event.map((e) {
-              e.data['completed'] = e.data['completed'] == 1;
-              e.data['dateTime'] = e.data['date_time'];
-              e.data['createdAt'] = e.data['created_at'];
-              e.data['updatedAt'] = e.data['updated_at'];
-              return TaskDTO.fromJson(e.data);
-            }))
-        .map((dtos) =>
-            dtos.map((e) => Task.fromJson(e.toJson())).toList(growable: false));
+    return customSelect('SELECT * from task_table where is_deleted = 0', readsFrom: {
+      taskTable
+    }).watch().map((event) => event.map((e) {
+          e.data['completed'] = e.data['completed'] == 1;
+          e.data['dateTime'] = e.data['date_time'];
+          e.data['createdAt'] = e.data['created_at'];
+          e.data['updatedAt'] = e.data['updated_at'];
+          e.data['isDeleted'] = e.data['is_deleted'] == 1;
+          e.data['isUploaded'] = e.data['is_uploaded'] == 1;
+          return Task.fromJson(e.data);
+        }).toList(growable: false));
   }
 
   Future<List<Task>> getTasks(List<String> ids) async {
-    final res =
-        await (select(taskTable)..where((tbl) => tbl.id.isIn(ids))).get();
-    return res.map((e) => Task.fromJson(e.toJson())).toList(growable: false);
+    // final res =
+    //     await (select(taskTable)..where((tbl) => tbl.id.isIn(ids))).get();
+    final res = await customSelect(
+        'SELECT * from task_table where is_deleted = 0 and _id in(${ids.map((e) => "'$e'").join(',')})',
+        readsFrom: {taskTable}).map((e) {
+      e.data['completed'] = e.data['completed'] == 1;
+      e.data['dateTime'] = e.data['date_time'];
+      e.data['createdAt'] = e.data['created_at'];
+      e.data['updatedAt'] = e.data['updated_at'];
+      e.data['isDeleted'] = e.data['is_deleted'] == 1;
+      e.data['isUploaded'] = e.data['is_uploaded'] == 1;
+      return Task.fromJson(e.data);
+    }).get();
+
+    return res;
+  }
+
+  Future<List<TaskDTO>> getLocallyCreatedTasks() async {
+    final res = await customSelect(
+        'SELECT * from task_table where is_deleted = 0 and is_uploaded = 0',
+        readsFrom: {taskTable}).map((e) {
+      e.data['completed'] = e.data['completed'] == 1;
+      e.data['dateTime'] = e.data['date_time'];
+      e.data['createdAt'] = e.data['created_at'];
+      e.data['updatedAt'] = e.data['updated_at'];
+      e.data['isDeleted'] = e.data['is_deleted'] == 1;
+      e.data['isUploaded'] = e.data['is_uploaded'] == 1;
+      return TaskDTO.fromJson(e.data);
+    }).get();
+
+    return res;
+  }
+
+  Future<List<TaskDTO>> getSoftDeletedTasks() async {
+    final res = await customSelect(
+        'SELECT * from task_table where is_deleted = 1 and is_uploaded = 0',
+        readsFrom: {taskTable}).map((e) {
+      e.data['completed'] = e.data['completed'] == 1;
+      e.data['dateTime'] = e.data['date_time'];
+      e.data['createdAt'] = e.data['created_at'];
+      e.data['updatedAt'] = e.data['updated_at'];
+      e.data['isDeleted'] = e.data['is_deleted'] == 1;
+      e.data['isUploaded'] = e.data['is_uploaded'] == 1;
+      return TaskDTO.fromJson(e.data);
+    }).get();
+
+    return res;
   }
 }
