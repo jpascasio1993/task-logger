@@ -118,9 +118,15 @@ The app attempts to synchronize pending changes at regular intervals (currently 
 
 If the connection is confirmed, it retries the queued operations until they succeed.
 
+
 **Suggestions and Improvements**
 
 I think the app would really benefit from a task search feature. Also, the current design feels a bit bland; updating the UI with more engaging visuals and a cleaner layout could make it much more appealing to use.
+
+
+**Appreciation**
+
+Using Cursor and its AI features for development has been a breeze. I've been able to leverage its AI capabilities to generate unit tests across multiple modules by following the same pattern I originally created for one—saving me from having to manually copy and paste. On top of that, the AI even suggested additional test scenarios I might have overlooked. I'm really grateful to the community, especially the team behind Cursor and the AI models powering it.
 
 
 https://github.com/user-attachments/assets/02a465ab-ac50-4376-b962-1083ea557e4e
