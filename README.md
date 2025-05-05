@@ -106,6 +106,22 @@ to
  fvm dart run lint_staged
 ```
 
+**How the app works**
+
+The app is designed to function offline and ensures that task management operations remain smooth even without an active internet connection. The app is fully operational offline. Users can create, update, and delete tasks without needing a constant internet connection.
+
+When the app is launched, it retrieves the latest task data from the Task Logger API, ensuring that the user starts with the most up-to-date information available from the server.
+
+If any operation (create, update, delete) fails due to a server error or lack of internet connectivity, the failed operation is added to a sync queue. These operations are marked for later synchronization.
+
+The app attempts to synchronize pending changes at regular intervals (currently every 2 seconds). Before each sync attempt, the app checks for internet connectivity by making a request to the `/health` endpoint on the Task Logger API.
+
+If the connection is confirmed, it retries the queued operations until they succeed.
+
+**Suggestions and Improvements**
+
+I think the app would really benefit from a task search feature. Also, the current design feels a bit bland; updating the UI with more engaging visuals and a cleaner layout could make it much more appealing to use.
+
 
 https://github.com/user-attachments/assets/02a465ab-ac50-4376-b962-1083ea557e4e
 
